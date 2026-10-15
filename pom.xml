@@ -17,5 +17,6 @@
         <module>tp6-optimistic-locking</module>
         <module>tp7-cache-second-niveau</module>
         <module>tp-capstone</module>
+        <module>tp2-spring-ioc</module>
     </modules>
 </project>

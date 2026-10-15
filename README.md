@@ -1,6 +1,6 @@
-# QCM & Travaux Pratiques - Hibernate & JPA
+# QCM & Travaux Pratiques - Hibernate, JPA & Architecture Microservices (Spring IoC)
 
-Projet complet regroupant les Travaux Pratiques et la Révision du module **Hibernate & JPA** (JEE, Hibernate 5.6, JPA 2.2).
+Projet complet multi-modules regroupant les Travaux Pratiques et Révisions du cursus **Hibernate & JPA** et du cursus **Architecture Microservices : Conception, Déploiement et Orchestration** (Spring IoC, Inversion de Contrôle, Injection de Dépendances).
 
 ---
 
@@ -8,29 +8,30 @@ Projet complet regroupant les Travaux Pratiques et la Révision du module **Hibe
 
 > Cette section présente les captures d'écran et traces réelles d'exécution prouvant la compilation Maven sans erreur et le passage à 100% des tests unitaires JUnit sur l'ensemble des modules.
 
-### 🌟 Compilation et Tests Globaux (Multi-modules Reactor - 9 Modules)
+### 🌟 Compilation et Tests Globaux (Multi-modules Reactor - 10 Modules)
 ![Capture Exécution Globale](docs/screenshots/global_build_execution.png)
 
 ```text
 [INFO] Reactor Summary for qcm-tp-parent 1.0-SNAPSHOT:
 [INFO] 
-[INFO] tp2-gestion-entites ................................ SUCCESS [  3.979 s]
-[INFO] tp3-gestion-avancee ................................ SUCCESS [  2.486 s]
-[INFO] tp4-heritage-mapping ............................... SUCCESS [  3.055 s]
-[INFO] tp5-requetes-avancees .............................. SUCCESS [  2.609 s]
-[INFO] tp-revision-gestion-commerciale .................... SUCCESS [  2.921 s]
-[INFO] tp6-optimistic-locking ............................. SUCCESS [  2.717 s]
-[INFO] tp7-cache-second-niveau ............................ SUCCESS [  3.507 s]
-[INFO] qcm-tp-parent ...................................... SUCCESS [  0.004 s]
-[INFO] tp-capstone ........................................ SUCCESS [  3.818 s]
+[INFO] tp2-gestion-entites ................................ SUCCESS [  5.593 s]
+[INFO] tp3-gestion-avancee ................................ SUCCESS [  8.347 s]
+[INFO] tp4-heritage-mapping ............................... SUCCESS [  6.799 s]
+[INFO] tp5-requetes-avancees .............................. SUCCESS [  2.818 s]
+[INFO] tp-revision-gestion-commerciale .................... SUCCESS [  3.293 s]
+[INFO] tp6-optimistic-locking ............................. SUCCESS [  5.401 s]
+[INFO] tp7-cache-second-niveau ............................ SUCCESS [  8.448 s]
+[INFO] qcm-tp-parent ...................................... SUCCESS [  0.033 s]
+[INFO] tp-capstone ........................................ SUCCESS [  9.282 s]
+[INFO] tp2-spring-ioc ..................................... SUCCESS [  1.698 s]
 [INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS (9 / 9 MODULES VALIDES)
-[INFO] Total time:  25.264 s
+[INFO] BUILD SUCCESS (10 / 10 MODULES VALIDES)
+[INFO] Total time:  51.932 s
 ```
 
 ---
 
-### 1. TP 2 : Gestion des Entités Salle et Utilisateur
+### 1. TP 2 : Gestion des Entités Salle et Utilisateur (JPA)
 ![Capture Exécution TP 2](docs/screenshots/tp2_execution.png)
 
 ```text
@@ -173,29 +174,6 @@ Hibernate: select a from auteurs a left outer join livres l on a.id=l.auteur_id
 ### 8. TP Capstone : Système Complet Intégré de Réservation de Salles
 ![Capture Exécution Capstone](docs/screenshots/tp_capstone_execution.png)
 
-Le projet **Capstone** consolide l'ensemble des connaissances du cursus JPA/Hibernate :
-1. **Migration SQL V2.0 (`v2_0_add_description.sql`)** : Ajout dynamique de colonnes (`departement`, `description`, `numero`), création de la table de traçabilité `db_version`, mise en place de contraintes de cohérence (`check_dates_coherentes CHECK (date_fin > date_debut)`) et indexation B-Tree (`idx_salles_capacite`, `idx_utilisateur_email`).
-2. **Seed de Données Réaliste (`DataInitializer`)** : Génération de 20 utilisateurs EMSI, 15 salles équipées, et 100 réservations sur différents créneaux et statuts (`CONFIRMEE`, `EN_ATTENTE`, `ANNULEE`).
-3. **Optimistic Locking & Concurrence** : Protection contre les écritures concurrentes via le champ `@Version` sur les entités clés, assurant l'intégrité sans verrouillage bloquant pessismiste.
-4. **Cache de Second Niveau (Ehcache 3 / JCache)** : Configuration multi-niveaux avec mise en cache des entités `Salle` et `Utilisateur` et activation du Query Cache Hibernate.
-5. **Rapport de Performance (`PerformanceReport`)** : Métriques complètes de session (entités chargées/insérées, hit/miss L2, requêtes exécutées) et analyse prédictive émettant des recommandations d'optimisation.
-
-```mermaid
-graph LR
-    subgraph "Client / Application"
-        Main["MainApp"] --> MS["MigrationExecutor (V2.0 SQL)"]
-        Main --> DI["DataInitializer (20 Users / 15 Salles / 100 Res)"]
-        Main --> SS["SalleService & ReservationService"]
-        Main --> PR["PerformanceReport (Audit & Metrics)"]
-    end
-
-    subgraph "JPA / Hibernate ORM"
-        SS --> L1["Cache L1 (Session Context)"]
-        L1 -->|Miss| L2["Cache L2 (Ehcache JSR-107)"]
-        L2 -->|Miss| DB[("Base H2 In-Memory (capstonedb)")]
-    end
-```
-
 ```text
 [INFO] Running com.example.test.ReservationTest
 INFOS: Migration exécutée avec succès (9 instructions) : db/migration/v2_0_add_description.sql
@@ -208,11 +186,65 @@ Version finale après concurrence : 1
 
 ---
 
+### 9. TP 2 (Architecture Microservices) : Spring IoC & Injection de Dépendances
+![Capture Exécution Spring IoC](docs/screenshots/tp2_spring_ioc_execution.png)
+
+Le module **`tp2-spring-ioc`** (Lab 152 du cours *Architecture Microservices*) illustre les principes fondamentaux de l'**Inversion de Contrôle (IoC)** et de l'**Injection de Dépendances (DI)** :
+
+1. **Couplage Faible via Interfaces** :
+   - Interface [`IDao`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/dao/IDao.java) et ses implémentations :
+     - [`DaoImpl`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/dao/DaoImpl.java) (`@Component("dao")`, retourne `100.0`).
+     - [`DaoImpl2`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/dao/DaoImpl2.java) (`@Component("dao2")`, retourne `150.0`).
+     - [`DaoImplSensor`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/dao/DaoImplSensor.java) (`@Component("daoSensor")`, retourne `250.0`).
+   - Interface [`IMetier`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/metier/IMetier.java) et son implémentation [`MetierImpl`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/metier/MetierImpl.java) (`@Component("metier")`, `@Autowired @Qualifier("dao2")`).
+2. **Trois Modes d'Exécution & d'Injection** :
+   - **Annotations Spring (`AnnotationConfigApplicationContext`)** via [`Presentation2`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/presentation/Presentation2.java).
+   - **Configuration XML (`ClassPathXmlApplicationContext`)** via [`PresentationXML`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/presentation/PresentationXML.java) et [`applicationContext.xml`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/resources/applicationContext.xml).
+   - **Profils Environnementaux (`@Profile`)** via [`PresentationProfiles`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/presentation/PresentationProfiles.java) basculant dynamiquement entre `dev` et `prod`.
+   - **Comparaison Couplage Fort vs Réflexion** via [`Presentation`](file:///Users/mamina107/Documents/ats-intelligent-backend/Qcm-tp/tp2-spring-ioc/src/main/java/presentation/Presentation.java).
+
+```mermaid
+graph TD
+    subgraph "Couche Métier"
+        IM["<< Interface >> IMetier"]
+        MI["MetierImpl (@Component)"]
+        MI -->|implements| IM
+    end
+
+    subgraph "Couche DAO (Accès aux Données)"
+        ID["<< Interface >> IDao"]
+        D1["DaoImpl (@Component('dao'))"]
+        D2["DaoImpl2 (@Component('dao2'))"]
+        DS["DaoImplSensor (@Component('daoSensor'))"]
+        D1 -->|implements| ID
+        D2 -->|implements| ID
+        DS -->|implements| ID
+    end
+
+    subgraph "Conteneur Spring IoC"
+        AC["ApplicationContext"]
+        AC -->|Injecte @Autowired @Qualifier('dao2')| MI
+        MI -.->|dépend de| ID
+    end
+```
+
+```text
+[INFO] Running metier.SpringContextTest
+[DaoImpl2] Récupération de la valeur depuis DaoImpl2 (source 2)...
+[DaoImpl2] Récupération de la valeur depuis DaoImpl2 (source 2)...
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.647 s
+[INFO] Running metier.MetierImplTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s
+[INFO] BUILD SUCCESS
+```
+
+---
+
 ## 📁 Architecture des Modules
 
 ```text
 Qcm-tp/
-├── pom.xml                               # POM Parent orchestrant tous les 9 modules
+├── pom.xml                               # POM Parent orchestrant tous les 10 modules
 ├── README.md                             # Documentation complète avec captures d'exécution et diagrammes
 ├── docs/
 │   └── screenshots/                      # Preuves d'exécution réelles (PNG haute résolution)
@@ -224,20 +256,22 @@ Qcm-tp/
 │       ├── revision_execution.png
 │       ├── tp6_execution.png
 │       ├── tp7_execution.png
-│       └── tp_capstone_execution.png
-├── tp2-gestion-entites/                  # TP 2 : Entités Salle & Utilisateur, GenericDao
-├── tp3-gestion-avancee/                  # TP 3 : Relations @OneToMany, @ManyToMany, Cascade, cycle de vie
-├── tp4-heritage-mapping/                 # TP 4 : Stratégies SINGLE_TABLE, JOINED, TABLE_PER_CLASS
-├── tp5-requetes-avancees/                # TP 5 : Disponibilité par créneau, Criteria API, Pagination
-├── tp-revision-gestion-commerciale/      # Révision : Gestion commerciale complète (GenericDAO, Commande, Produit)
-├── tp6-optimistic-locking/               # TP 6 : Concurrence, @Version, OptimisticLockException, RetryHandler
-├── tp7-cache-second-niveau/              # TP 7 : Cache L2 EhCache, JOIN FETCH, Entity Graph, N+1
-└── tp-capstone/                          # TP Capstone : Architecture finale (Migration V2, L2, Criteria, Perf)
+│       ├── tp_capstone_execution.png
+│       └── tp2_spring_ioc_execution.png
+├── tp2-gestion-entites/                  # TP 2 (JPA) : Entités Salle & Utilisateur, GenericDao
+├── tp3-gestion-avancee/                  # TP 3 (JPA) : Relations @OneToMany, @ManyToMany, Cascade, cycle de vie
+├── tp4-heritage-mapping/                 # TP 4 (JPA) : Stratégies SINGLE_TABLE, JOINED, TABLE_PER_CLASS
+├── tp5-requetes-avancees/                # TP 5 (JPA) : Disponibilité par créneau, Criteria API, Pagination
+├── tp-revision-gestion-commerciale/      # Révision (JPA) : Gestion commerciale complète (GenericDAO, Commande, Produit)
+├── tp6-optimistic-locking/               # TP 6 (JPA) : Concurrence, @Version, OptimisticLockException, RetryHandler
+├── tp7-cache-second-niveau/              # TP 7 (JPA) : Cache L2 EhCache, JOIN FETCH, Entity Graph, N+1
+├── tp-capstone/                          # TP Capstone (JPA) : Architecture finale (Migration V2, L2, Criteria, Perf)
+└── tp2-spring-ioc/                       # TP 2 (Microservices) : Spring IoC, @Component, @Autowired, @Qualifier, XML, Profiles
 ```
 
 ---
 
-## 🚀 Exécution des Tests
+## 🚀 Exécution des Tests et Démonstrations
 
 Pour compiler l'intégralité des modules et exécuter la suite complète de tests automatisés :
 
@@ -245,12 +279,18 @@ Pour compiler l'intégralité des modules et exécuter la suite complète de tes
 mvn clean test
 ```
 
-Pour exécuter un module spécifique :
+Pour exécuter les démonstrations du module Spring IoC :
 
 ```bash
-# TP Capstone : Tests unitaires
-mvn test -pl tp-capstone
+# Tests unitaires et d'intégration Spring
+mvn test -pl tp2-spring-ioc
 
-# TP Capstone : Application complète
-mvn exec:java -Dexec.mainClass="com.example.MainApp" -pl tp-capstone
+# Démonstration Spring IoC avec Annotations Java
+mvn exec:java -Dexec.mainClass="presentation.Presentation2" -pl tp2-spring-ioc
+
+# Démonstration Spring IoC avec configuration XML
+mvn exec:java -Dexec.mainClass="presentation.PresentationXML" -pl tp2-spring-ioc
+
+# Démonstration Spring avec Profils (dev/prod)
+mvn exec:java -Dexec.mainClass="presentation.PresentationProfiles" -pl tp2-spring-ioc
 ```
