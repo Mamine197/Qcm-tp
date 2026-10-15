@@ -14,5 +14,6 @@
         <module>tp4-heritage-mapping</module>
         <module>tp5-requetes-avancees</module>
         <module>tp-revision-gestion-commerciale</module>
+        <module>tp6-optimistic-locking</module>
     </modules>
 </project>
