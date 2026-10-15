@@ -13,5 +13,6 @@
         <module>tp3-gestion-avancee</module>
         <module>tp4-heritage-mapping</module>
         <module>tp5-requetes-avancees</module>
+        <module>tp-revision-gestion-commerciale</module>
     </modules>
 </project>
