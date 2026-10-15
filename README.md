@@ -8,23 +8,24 @@ Projet complet regroupant les Travaux Pratiques et la Révision du module **Hibe
 
 > Cette section présente les captures d'écran et traces réelles d'exécution prouvant la compilation Maven sans erreur et le passage à 100% des tests unitaires JUnit sur l'ensemble des modules.
 
-### 🌟 Compilation et Tests Globaux (Multi-modules Reactor)
+### 🌟 Compilation et Tests Globaux (Multi-modules Reactor - 9 Modules)
 ![Capture Exécution Globale](docs/screenshots/global_build_execution.png)
 
 ```text
 [INFO] Reactor Summary for qcm-tp-parent 1.0-SNAPSHOT:
 [INFO] 
-[INFO] tp2-gestion-entites ................................ SUCCESS [  2.450 s]
-[INFO] tp3-gestion-avancee ................................ SUCCESS [  1.820 s]
-[INFO] tp4-heritage-mapping ............................... SUCCESS [  1.940 s]
-[INFO] tp5-requetes-avancees .............................. SUCCESS [  2.110 s]
-[INFO] tp-revision-gestion-commerciale .................... SUCCESS [  2.380 s]
-[INFO] tp6-optimistic-locking ............................. SUCCESS [  1.750 s]
-[INFO] tp7-cache-second-niveau ............................ SUCCESS [  2.840 s]
-[INFO] qcm-tp-parent ...................................... SUCCESS [  0.002 s]
+[INFO] tp2-gestion-entites ................................ SUCCESS [  3.979 s]
+[INFO] tp3-gestion-avancee ................................ SUCCESS [  2.486 s]
+[INFO] tp4-heritage-mapping ............................... SUCCESS [  3.055 s]
+[INFO] tp5-requetes-avancees .............................. SUCCESS [  2.609 s]
+[INFO] tp-revision-gestion-commerciale .................... SUCCESS [  2.921 s]
+[INFO] tp6-optimistic-locking ............................. SUCCESS [  2.717 s]
+[INFO] tp7-cache-second-niveau ............................ SUCCESS [  3.507 s]
+[INFO] qcm-tp-parent ...................................... SUCCESS [  0.004 s]
+[INFO] tp-capstone ........................................ SUCCESS [  3.818 s]
 [INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] Total time:  15.292 s
+[INFO] BUILD SUCCESS (9 / 9 MODULES VALIDES)
+[INFO] Total time:  25.264 s
 ```
 
 ---
@@ -169,11 +170,49 @@ Hibernate: select a from auteurs a left outer join livres l on a.id=l.auteur_id
 
 ---
 
+### 8. TP Capstone : Système Complet Intégré de Réservation de Salles
+![Capture Exécution Capstone](docs/screenshots/tp_capstone_execution.png)
+
+Le projet **Capstone** consolide l'ensemble des connaissances du cursus JPA/Hibernate :
+1. **Migration SQL V2.0 (`v2_0_add_description.sql`)** : Ajout dynamique de colonnes (`departement`, `description`, `numero`), création de la table de traçabilité `db_version`, mise en place de contraintes de cohérence (`check_dates_coherentes CHECK (date_fin > date_debut)`) et indexation B-Tree (`idx_salles_capacite`, `idx_utilisateur_email`).
+2. **Seed de Données Réaliste (`DataInitializer`)** : Génération de 20 utilisateurs EMSI, 15 salles équipées, et 100 réservations sur différents créneaux et statuts (`CONFIRMEE`, `EN_ATTENTE`, `ANNULEE`).
+3. **Optimistic Locking & Concurrence** : Protection contre les écritures concurrentes via le champ `@Version` sur les entités clés, assurant l'intégrité sans verrouillage bloquant pessismiste.
+4. **Cache de Second Niveau (Ehcache 3 / JCache)** : Configuration multi-niveaux avec mise en cache des entités `Salle` et `Utilisateur` et activation du Query Cache Hibernate.
+5. **Rapport de Performance (`PerformanceReport`)** : Métriques complètes de session (entités chargées/insérées, hit/miss L2, requêtes exécutées) et analyse prédictive émettant des recommandations d'optimisation.
+
+```mermaid
+graph LR
+    subgraph "Client / Application"
+        Main["MainApp"] --> MS["MigrationExecutor (V2.0 SQL)"]
+        Main --> DI["DataInitializer (20 Users / 15 Salles / 100 Res)"]
+        Main --> SS["SalleService & ReservationService"]
+        Main --> PR["PerformanceReport (Audit & Metrics)"]
+    end
+
+    subgraph "JPA / Hibernate ORM"
+        SS --> L1["Cache L1 (Session Context)"]
+        L1 -->|Miss| L2["Cache L2 (Ehcache JSR-107)"]
+        L2 -->|Miss| DB[("Base H2 In-Memory (capstonedb)")]
+    end
+```
+
+```text
+[INFO] Running com.example.test.ReservationTest
+INFOS: Migration exécutée avec succès (9 instructions) : db/migration/v2_0_add_description.sql
+INFOS: Initialisation réussie : 15 salles, 20 utilisateurs, 100 réservations créées.
+[Cache L2] SecondLevelCacheHitCount: 1, Puts: 1
+Version finale après concurrence : 1
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.976 s
+[INFO] BUILD SUCCESS
+```
+
+---
+
 ## 📁 Architecture des Modules
 
 ```text
 Qcm-tp/
-├── pom.xml                               # POM Parent orchestrant tous les 8 modules
+├── pom.xml                               # POM Parent orchestrant tous les 9 modules
 ├── README.md                             # Documentation complète avec captures d'exécution et diagrammes
 ├── docs/
 │   └── screenshots/                      # Preuves d'exécution réelles (PNG haute résolution)
@@ -184,14 +223,16 @@ Qcm-tp/
 │       ├── tp5_execution.png
 │       ├── revision_execution.png
 │       ├── tp6_execution.png
-│       └── tp7_execution.png
+│       ├── tp7_execution.png
+│       └── tp_capstone_execution.png
 ├── tp2-gestion-entites/                  # TP 2 : Entités Salle & Utilisateur, GenericDao
 ├── tp3-gestion-avancee/                  # TP 3 : Relations @OneToMany, @ManyToMany, Cascade, cycle de vie
 ├── tp4-heritage-mapping/                 # TP 4 : Stratégies SINGLE_TABLE, JOINED, TABLE_PER_CLASS
 ├── tp5-requetes-avancees/                # TP 5 : Disponibilité par créneau, Criteria API, Pagination
 ├── tp-revision-gestion-commerciale/      # Révision : Gestion commerciale complète (GenericDAO, Commande, Produit)
 ├── tp6-optimistic-locking/               # TP 6 : Concurrence, @Version, OptimisticLockException, RetryHandler
-└── tp7-cache-second-niveau/              # TP 7 : Cache L2 EhCache, JOIN FETCH, Entity Graph, N+1
+├── tp7-cache-second-niveau/              # TP 7 : Cache L2 EhCache, JOIN FETCH, Entity Graph, N+1
+└── tp-capstone/                          # TP Capstone : Architecture finale (Migration V2, L2, Criteria, Perf)
 ```
 
 ---
@@ -207,9 +248,9 @@ mvn clean test
 Pour exécuter un module spécifique :
 
 ```bash
-# TP 7 : Cache L2 et Optimisation N+1
-mvn test -pl tp7-cache-second-niveau
+# TP Capstone : Tests unitaires
+mvn test -pl tp-capstone
 
-# Démonstration complète TP 7
-mvn exec:java -Dexec.mainClass="com.example.App" -pl tp7-cache-second-niveau
+# TP Capstone : Application complète
+mvn exec:java -Dexec.mainClass="com.example.MainApp" -pl tp-capstone
 ```
