@@ -77,3 +77,37 @@ tp3-gestion-avancee/
             └── AppTest.java
 ```
 
+---
+
+## TP 4 : Héritage avec Hibernate - Stratégies de Mapping
+
+### 📌 Objectifs
+- Mise en œuvre des trois stratégies d'héritage JPA/Hibernate :
+  - **SINGLE_TABLE** : hiérarchie `Vehicule` (`Voiture`, `Moto`) avec colonne discriminante `@DiscriminatorColumn(name = "vehicule_type")`.
+  - **JOINED** : hiérarchie normalisée `Employe` (`Developpeur`, `Manager`) avec jointures de clés primaires/étrangères.
+  - **TABLE_PER_CLASS** : hiérarchie `Produit` (`Livre`, `Electronique`) avec tables indépendantes et requêtes polymorphiques par `UNION ALL`.
+- Validations Bean Validation (`@NotNull`, `@Min`, `@Max`, `@Email`).
+- Requêtes JPQL polymorphiques et analyse des requêtes SQL générées.
+- Tests unitaires complets avec JUnit 4 (`AppTest`).
+
+### 📁 Structure du projet
+```text
+tp4-heritage-mapping/
+├── pom.xml
+└── src/
+    ├── main/
+    │   ├── java/com/example/
+    │   │   ├── model/
+    │   │   │   ├── singletable/ (Vehicule, Voiture, Moto)
+    │   │   │   ├── joined/      (Employe, Developpeur, Manager)
+    │   │   │   └── tableperclass/ (Produit, Livre, Electronique)
+    │   │   └── App.java
+    │   └── resources/
+    │       └── META-INF/
+    │           └── persistence.xml
+    └── test/
+        └── java/com/example/
+            └── AppTest.java
+```
+
+
