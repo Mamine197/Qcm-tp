@@ -10,5 +10,6 @@
 
     <modules>
         <module>tp2-gestion-entites</module>
+        <module>tp3-gestion-avancee</module>
     </modules>
 </project>

@@ -38,8 +38,42 @@ tp2-gestion-entites/
 ```
 
 ### 🚀 Compilation et Exécution des Tests
-
 ```bash
-# Exécuter les tests depuis la racine ou dans le sous-dossier
+# Compiler et exécuter tous les tests
 mvn clean test
 ```
+
+---
+
+## TP 3 : Relations Avancées et Cycle de Vie des Entités avec JPA et Hibernate
+
+### 📌 Objectifs
+- Gestion des relations complexes JPA :
+  - `@OneToMany` et `@ManyToOne` bi-directionnel avec `mappedBy` et `orphanRemoval = true`.
+  - `@ManyToMany` avec table de jointure explicite (`salle_equipement`).
+- Propagation des opérations en cascade (`CascadeType.PERSIST`, `CascadeType.MERGE`).
+- Cycle de vie des entités JPA (`transient`, `managed`, `detached`, `removed`).
+- Chargement paresseux (`FetchType.LAZY`) vs immédiat (`FetchType.EAGER`).
+- Tests unitaires complets avec JUnit 4 (`AppTest`).
+
+### 📁 Structure du projet
+```text
+tp3-gestion-avancee/
+├── pom.xml
+└── src/
+    ├── main/
+    │   ├── java/com/example/
+    │   │   ├── model/
+    │   │   │   ├── Salle.java
+    │   │   │   ├── Utilisateur.java
+    │   │   │   ├── Reservation.java
+    │   │   │   └── Equipement.java
+    │   │   └── App.java
+    │   └── resources/
+    │       └── META-INF/
+    │           └── persistence.xml
+    └── test/
+        └── java/com/example/
+            └── AppTest.java
+```
+
