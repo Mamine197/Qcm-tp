@@ -110,4 +110,37 @@ tp4-heritage-mapping/
             └── AppTest.java
 ```
 
+---
+
+## TP 5 : Requêtes Avancées avec JPA - Disponibilité, Multi-critères et Pagination
+
+### 📌 Objectifs
+- Recherche de disponibilité temporelle (détection de chevauchement d'intervalles) en JPQL :
+  - `s.id NOT IN (SELECT r.salle.id FROM Reservation r WHERE :start < r.dateFin AND :end > r.dateDebut)`
+- Recherche multi-critères dynamique avec Criteria API (`CriteriaBuilder`, `Predicate`, `Root`).
+- Pagination des résultats (`setFirstResult`, `setMaxResults`) et calcul automatique du nombre total de pages via `PaginationResult<T>`.
+- Architecture en couches : `SalleRepository` / `SalleRepositoryImpl`, `SalleService` / `SalleServiceImpl`.
+- Tests unitaires complets avec JUnit 4 (`AppTest`).
+
+### 📁 Structure du projet
+```text
+tp5-requetes-avancees/
+├── pom.xml
+└── src/
+    ├── main/
+    │   ├── java/com/example/
+    │   │   ├── model/ (Salle, Reservation)
+    │   │   ├── repository/ (SalleRepository, SalleRepositoryImpl)
+    │   │   ├── service/ (SalleService, SalleServiceImpl)
+    │   │   ├── util/ (PaginationResult)
+    │   │   └── App.java
+    │   └── resources/
+    │       └── META-INF/
+    │           └── persistence.xml
+    └── test/
+        └── java/com/example/
+            └── AppTest.java
+```
+
+
 

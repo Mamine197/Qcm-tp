@@ -12,5 +12,6 @@
         <module>tp2-gestion-entites</module>
         <module>tp3-gestion-avancee</module>
         <module>tp4-heritage-mapping</module>
+        <module>tp5-requetes-avancees</module>
     </modules>
 </project>
