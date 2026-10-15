@@ -15,5 +15,6 @@
         <module>tp5-requetes-avancees</module>
         <module>tp-revision-gestion-commerciale</module>
         <module>tp6-optimistic-locking</module>
+        <module>tp7-cache-second-niveau</module>
     </modules>
 </project>
