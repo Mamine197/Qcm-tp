@@ -1,7 +1,15 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<?xml version="1.0" encoding="UTF-8"?>
+>>>>>>> a9f9f50 (TP3 Spring IoC & OCP - Stratégies d'Injection et Sélection d'Implémentation)
+>>>>>>> 43d34532506bb838876960f2f91a4d40ed49010c
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+<<<<<<< HEAD
     <groupId>com.microservice</groupId>
     <artifactId>microservice-product</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -32,3 +40,52 @@
         </dependency>
     </dependencies>
 </project>
+=======
+
+<<<<<<< HEAD
+    <groupId>com.example</groupId>
+    <artifactId>qcm-tp-parent</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>tp2-gestion-entites</module>
+        <module>tp3-gestion-avancee</module>
+        <module>tp4-heritage-mapping</module>
+        <module>tp5-requetes-avancees</module>
+        <module>tp-revision-gestion-commerciale</module>
+        <module>tp6-optimistic-locking</module>
+        <module>tp7-cache-second-niveau</module>
+        <module>tp-capstone</module>
+        <module>tp2-spring-ioc</module>
+    </modules>
+</project>
+=======
+    <groupId>com.exemple</groupId>
+    <artifactId>TP3t</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.3.30</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
+>>>>>>> a9f9f50 (TP3 Spring IoC & OCP - Stratégies d'Injection et Sélection d'Implémentation)
+>>>>>>> 43d34532506bb838876960f2f91a4d40ed49010c

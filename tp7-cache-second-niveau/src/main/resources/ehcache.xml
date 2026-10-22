@@ -1,0 +1,49 @@
+<config xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns='http://www.ehcache.org/v3'
+        xsi:schemaLocation='http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.0.xsd'>
+
+    <!-- Région Cache L2 pour l'entité Auteur -->
+    <cache alias="com.example.model.Auteur">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="hours">2</ttl>
+        </expiry>
+    </cache>
+
+    <!-- Région Cache L2 pour la collection livres de l'Auteur -->
+    <cache alias="com.example.model.Auteur.livres">
+        <heap unit="entries">5000</heap>
+        <expiry>
+            <ttl unit="hours">2</ttl>
+        </expiry>
+    </cache>
+
+    <!-- Région Cache L2 pour l'entité Livre -->
+    <cache alias="com.example.model.Livre">
+        <heap unit="entries">5000</heap>
+        <expiry>
+            <ttl unit="hours">2</ttl>
+        </expiry>
+    </cache>
+
+    <!-- Régions techniques Hibernate pour la synchronisation et le cache de requêtes -->
+    <cache alias="default-update-timestamps-region">
+        <heap unit="entries">10000</heap>
+    </cache>
+
+    <cache alias="default-query-results-region">
+        <heap unit="entries">10000</heap>
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="org.hibernate.cache.spi.UpdateTimestampsCache">
+        <heap unit="entries">10000</heap>
+    </cache>
+
+    <cache alias="org.hibernate.cache.spi.QueryResultsCache">
+        <heap unit="entries">10000</heap>
+    </cache>
+
+</config>

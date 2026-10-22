@@ -1,5 +1,6 @@
 package com.exemple;
 
+<<<<<<< HEAD
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
@@ -13,5 +14,27 @@ public class Main {
             // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
             System.out.println("i = " + i);
         }
+=======
+import com.exemple.config.AppConfig;
+import com.exemple.metier.IMetier;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class Main {
+    public static void main(String[] args) {
+        // Crée le conteneur Spring
+        AnnotationConfigApplicationContext context =
+                new AnnotationConfigApplicationContext(AppConfig.class);
+
+        // Récupère le bean métier
+        IMetier metier = context.getBean(IMetier.class);
+
+        // Exécute le calcul
+        double resultat = metier.calcul();
+        System.out.println("Résultat final : " + resultat);
+
+        // Ferme le conteneur
+        context.close();
+
+>>>>>>> 43d34532506bb838876960f2f91a4d40ed49010c
     }
 }

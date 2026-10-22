@@ -1,4 +1,16 @@
 target/
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+*.class
+.DS_Store
+.idea/
+*.iml
+.settings/
+.project
+.classpath
+=======
+>>>>>>> 43d34532506bb838876960f2f91a4d40ed49010c
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -36,4 +48,9 @@ build/
 .vscode/
 
 ### Mac OS ###
+<<<<<<< HEAD
 .DS_Store
+=======
+.DS_Store
+>>>>>>> a9f9f50 (TP3 Spring IoC & OCP - Stratégies d'Injection et Sélection d'Implémentation)
+>>>>>>> 43d34532506bb838876960f2f91a4d40ed49010c

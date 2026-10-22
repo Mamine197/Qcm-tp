@@ -1,0 +1,25 @@
+package com.exemple.metier;
+
+import com.exemple.dao.IDao;
+import org.springframework.stereotype.Service;
+
+@Service
+public class MetierImpl implements IMetier {
+    private final IDao dao;
+
+    public MetierImpl(IDao dao) {
+        this.dao = dao;
+    }
+
+    @PostConstruct
+    public void init() {
+        System.out.println("[TRACE] Implémentation DAO injectée : " + dao.getClass().getSimpleName());
+    }
+
+    @Override
+    public double calcul() {
+        double valeur = dao.getValue();
+        // Logique métier simple : double la valeur
+        return valeur * 2.0;
+    }
+}
