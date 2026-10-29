@@ -58,6 +58,7 @@
         <module>tp7-cache-second-niveau</module>
         <module>tp-capstone</module>
         <module>tp2-spring-ioc</module>
+        <module>tp6-spring-boot-swagger</module>
     </modules>
 </project>
 =======
