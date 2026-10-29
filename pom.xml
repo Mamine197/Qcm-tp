@@ -1,52 +1,21 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
 <?xml version="1.0" encoding="UTF-8"?>
->>>>>>> a9f9f50 (TP3 Spring IoC & OCP - Stratégies d'Injection et Sélection d'Implémentation)
->>>>>>> 43d34532506bb838876960f2f91a4d40ed49010c
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-<<<<<<< HEAD
-    <groupId>com.microservice</groupId>
-    <artifactId>microservice-product</artifactId>
-    <version>1.0-SNAPSHOT</version>
 
-    <properties>
-        <spring.version>5.3.20</spring.version>
-        <hibernate.version>5.6.9.Final</hibernate.version>
-    </properties>
-
-    <dependencies>
-        <!-- Spring Context -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <!-- Spring ORM -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-orm</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <!-- Hibernate Core -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>${hibernate.version}</version>
-        </dependency>
-    </dependencies>
-</project>
-=======
-
-<<<<<<< HEAD
     <groupId>com.example</groupId>
     <artifactId>qcm-tp-parent</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.version>6.1.2</spring.version>
+        <hibernate.version>6.4.4.Final</hibernate.version>
+    </properties>
 
     <modules>
         <module>tp2-gestion-entites</module>
@@ -61,32 +30,3 @@
         <module>tp6-spring-boot-swagger</module>
     </modules>
 </project>
-=======
-    <groupId>com.exemple</groupId>
-    <artifactId>TP3t</artifactId>
-    <version>1.0-SNAPSHOT</version>
-
-    <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>5.3.30</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-</project>
->>>>>>> a9f9f50 (TP3 Spring IoC & OCP - Stratégies d'Injection et Sélection d'Implémentation)
->>>>>>> 43d34532506bb838876960f2f91a4d40ed49010c
