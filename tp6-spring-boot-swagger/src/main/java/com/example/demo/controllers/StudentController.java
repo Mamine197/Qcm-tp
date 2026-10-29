@@ -16,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("students")
+@CrossOrigin(origins = "*")
 @Tag(name = "Student Controller", description = "Endpoints de gestion des étudiants et statistiques")
 public class StudentController {
 

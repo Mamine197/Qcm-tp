@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management — React Client & Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- React 18 & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const API_BASE = "http://localhost:8080/students";
+
+        function App() {
+            const [students, setStudents] = useState([]);
+            const [count, setCount] = useState(0);
+            const [byYear, setByYear] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [backendUp, setBackendUp] = useState(true);
+            const [search, setSearch] = useState("");
+            const [modalOpen, setModalOpen] = useState(false);
+            const [toast, setToast] = useState(null);
+            const [editingStudent, setEditingStudent] = useState(null);
+
+            // Form state
+            const [formNom, setFormNom] = useState("");
+            const [formPrenom, setFormPrenom] = useState("");
+            const [formDate, setFormDate] = useState("");
+
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            // Show Toast helper
+            const showToast = (message, type = "success") => {
+                setToast({ message, type });
+                setTimeout(() => setToast(null), 3500);
+            };
+
+            // Fetch all data
+            const fetchData = async () => {
+                setLoading(true);
+                try {
+                    const [resAll, resCount, resByYear] = await Promise.all([
+                        fetch(`${API_BASE}/all`),
+                        fetch(`${API_BASE}/count`),
+                        fetch(`${API_BASE}/byYear`)
+                    ]);
+
+                    if (resAll.ok) {
+                        const dataAll = await resAll.json();
+                        setStudents(dataAll);
+                    }
+                    if (resCount.ok) {
+                        const dataCount = await resCount.json();
+                        setCount(dataCount);
+                    }
+                    if (resByYear.ok) {
+                        const dataByYear = await resByYear.json();
+                        setByYear(dataByYear);
+                    }
+                    setBackendUp(true);
+                } catch (err) {
+                    console.error("API error:", err);
+                    setBackendUp(false);
+                    showToast("Impossible de contacter le backend Spring Boot (port 8080)", "error");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            useEffect(() => {
+                fetchData();
+            }, []);
+
+            // Render Chart when byYear updates
+            useEffect(() => {
+                if (!chartRef.current || !byYear || byYear.length === 0) return;
+
+                const labels = byYear.map(item => Array.isArray(item) ? item[0] : (item.year || item.key));
+                const values = byYear.map(item => Array.isArray(item) ? item[1] : (item.count || item.value));
+
+                if (chartInstance.current) {
+                    chartInstance.current.destroy();
+                }
+
+                const ctx = chartRef.current.getContext('2d');
+                chartInstance.current = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels.map(l => `Année ${l}`),
+                        datasets: [{
+                            label: 'Nombre d\'étudiants',
+                            data: values,
+                            backgroundColor: 'rgba(59, 130, 246, 0.75)',
+                            borderColor: 'rgb(37, 99, 235)',
+                            borderWidth: 1.5,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1, precision: 0 }
+                            }
+                        }
+                    }
+                });
+
+                return () => {
+                    if (chartInstance.current) chartInstance.current.destroy();
+                };
+            }, [byYear]);
+
+            // Save or Update Student
+            const handleSave = async (e) => {
+                e.preventDefault();
+                if (!formNom.trim() || !formPrenom.trim() || !formDate) {
+                    showToast("Veuillez renseigner tous les champs.", "error");
+                    return;
+                }
+
+                const payload = {
+                    nom: formNom.trim(),
+                    prenom: formPrenom.trim(),
+                    dateNaissance: formDate
+                };
+
+                if (editingStudent && editingStudent.id) {
+                    payload.id = editingStudent.id;
+                }
+
+                try {
+                    const res = await fetch(`${API_BASE}/save`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (res.ok) {
+                        showToast(editingStudent ? "Étudiant modifié avec succès !" : "Nouvel étudiant ajouté avec succès !", "success");
+                        closeModal();
+                        fetchData();
+                    } else {
+                        showToast("Erreur lors de l'enregistrement.", "error");
+                    }
+                } catch (err) {
+                    showToast("Erreur réseau lors de la sauvegarde.", "error");
+                }
+            };
+
+            // Delete Student
+            const handleDelete = async (id, nomComplet) => {
+                if (!window.confirm(`Confirmer la suppression de l'étudiant : ${nomComplet} (ID #${id}) ?`)) {
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`${API_BASE}/delete/${id}`, { method: "DELETE" });
+                    if (res.ok || res.status === 204) {
+                        showToast(`Étudiant #${id} supprimé avec succès.`, "success");
+                        fetchData();
+                    } else if (res.status === 404) {
+                        showToast("Étudiant introuvable.", "error");
+                    } else {
+                        showToast("Erreur lors de la suppression.", "error");
+                    }
+                } catch (err) {
+                    showToast("Erreur réseau.", "error");
+                }
+            };
+
+            // Open Modal for Edit
+            const openEditModal = (st) => {
+                setEditingStudent(st);
+                setFormNom(st.nom || "");
+                setFormPrenom(st.prenom || "");
+                // format date to YYYY-MM-DD
+                const rawDate = st.dateNaissance ? st.dateNaissance.split('T')[0] : "";
+                setFormDate(rawDate);
+                setModalOpen(true);
+            };
+
+            const openAddModal = () => {
+                setEditingStudent(null);
+                setFormNom("");
+                setFormPrenom("");
+                setFormDate("");
+                setModalOpen(true);
+            };
+
+            const closeModal = () => {
+                setModalOpen(false);
+                setEditingStudent(null);
+                setFormNom("");
+                setFormPrenom("");
+                setFormDate("");
+            };
+
+            // Seed demo data
+            const handleSeedDemoData = async () => {
+                const samples = [
+                    { nom: "BENJELLOUN", prenom: "Mehdi", dateNaissance: "2001-04-12" },
+                    { nom: "EL AMRICHI", prenom: "Salma", dateNaissance: "2002-08-25" },
+                    { nom: "TAZI", prenom: "Youssef", dateNaissance: "2001-11-03" },
+                    { nom: "LAHLOU", prenom: "Rim", dateNaissance: "2003-01-18" },
+                    { nom: "IDRISSI", prenom: "Othman", dateNaissance: "2002-05-30" }
+                ];
+
+                setLoading(true);
+                try {
+                    for (const s of samples) {
+                        await fetch(`${API_BASE}/save`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(s)
+                        });
+                    }
+                    showToast("5 étudiants de test ont été ajoutés !", "success");
+                    fetchData();
+                } catch (e) {
+                    showToast("Erreur lors de l'injection des données.", "error");
+                    setLoading(false);
+                }
+            };
+
+            const filteredStudents = students.filter(s => {
+                const query = search.toLowerCase();
+                return (
+                    (s.nom && s.nom.toLowerCase().includes(query)) ||
+                    (s.prenom && s.prenom.toLowerCase().includes(query)) ||
+                    (s.dateNaissance && s.dateNaissance.includes(query)) ||
+                    (s.id && s.id.toString().includes(query))
+                );
+            });
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Toast Notification */}
+                    {toast && (
+                        <div className={`fixed top-5 right-5 z-50 flex items-center px-4 py-3 rounded-xl shadow-lg border transition-all transform animate-bounce ${
+                            toast.type === 'success' 
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                                : 'bg-rose-50 text-rose-800 border-rose-200'
+                        }`}>
+                            <span className="font-medium text-sm">{toast.message}</span>
+                        </div>
+                    )}
+
+                    {/* Navigation / Header */}
+                    <header className="flex flex-col md:flex-row md:items-center justify-between pb-8 mb-8 border-b border-slate-200 gap-4">
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 font-bold text-xl">
+                                    SM
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Student Management Hub</h1>
+                                    <p className="text-xs text-slate-500 font-medium">TP 6 Spring Boot & Swagger API — Frontend React 18</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                                backendUp 
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                    : 'bg-rose-50 text-rose-700 border-rose-200'
+                            }`}>
+                                <span className={`h-2 w-2 rounded-full ${backendUp ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
+                                {backendUp ? 'API Spring Boot Connectée (:8080)' : 'Backend Inaccessible'}
+                            </span>
+
+                            <a 
+                                href="http://localhost:8080/swagger-ui.html" 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium rounded-lg transition-colors shadow-sm"
+                            >
+                                <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+                                Swagger UI
+                            </a>
+                        </div>
+                    </header>
+
+                    {/* KPI Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Étudiants</p>
+                                <p className="text-3xl font-extrabold text-slate-900 mt-1">{count}</p>
+                                <p className="text-xs text-blue-600 font-medium mt-1">Endpoint: GET /students/count</p>
+                            </div>
+                            <div className="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Promotions / Années</p>
+                                <p className="text-3xl font-extrabold text-slate-900 mt-1">{byYear ? byYear.length : 0}</p>
+                                <p className="text-xs text-purple-600 font-medium mt-1">Endpoint: GET /students/byYear</p>
+                            </div>
+                            <div className="h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">API Statut & Mode</p>
+                                <p className="text-xl font-bold text-emerald-600 mt-1">Swagger 3.0 Ready</p>
+                                <p className="text-xs text-slate-400 font-medium mt-1">Endpoints REST documentés</p>
+                            </div>
+                            <div className="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Analytics Section: Chart.js */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm mb-8">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 className="text-base font-bold text-slate-900">Répartition des étudiants par Année de Naissance</h2>
+                                <p className="text-xs text-slate-500">Données issues de la requête JPQL groupée du repository Spring Data</p>
+                            </div>
+                            <span className="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md">
+                                Statistique temps réel
+                            </span>
+                        </div>
+                        <div className="h-64 w-full">
+                            {byYear && byYear.length > 0 ? (
+                                <canvas ref={chartRef}></canvas>
+                            ) : (
+                                <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                                    <p className="text-sm">Aucune donnée disponible pour le graphique.</p>
+                                    <button 
+                                        onClick={handleSeedDemoData}
+                                        className="mt-3 text-xs text-blue-600 underline font-semibold hover:text-blue-800"
+                                    >
+                                        Injecter des données d'exemple
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Students Table Section */}
+                    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <h2 className="text-lg font-bold text-slate-900">Annuaire des Étudiants</h2>
+                                <span className="text-xs font-semibold bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full">
+                                    {filteredStudents.length} affiché(s)
+                                </span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-3">
+                                {/* Search Bar */}
+                                <div className="relative">
+                                    <input 
+                                        type="text"
+                                        placeholder="Rechercher nom, prénom..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 sm:w-64"
+                                    />
+                                    <svg className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                </div>
+
+                                <button 
+                                    onClick={fetchData} 
+                                    title="Actualiser"
+                                    className="p-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl transition-colors"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                </button>
+
+                                {students.length === 0 && (
+                                    <button 
+                                        onClick={handleSeedDemoData}
+                                        className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-xl transition-colors"
+                                    >
+                                        + Données de démo
+                                    </button>
+                                )}
+
+                                <button 
+                                    onClick={openAddModal}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors shadow-sm shadow-blue-500/20 flex items-center gap-1.5"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                                    Ajouter un étudiant
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
+                                        <th className="py-3.5 px-6">ID</th>
+                                        <th className="py-3.5 px-6">Étudiant</th>
+                                        <th className="py-3.5 px-6">Date de Naissance</th>
+                                        <th className="py-3.5 px-6">Année</th>
+                                        <th className="py-3.5 px-6 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 text-sm">
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan="5" className="py-12 text-center text-slate-400">
+                                                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-2"></div>
+                                                <p className="text-xs">Chargement des données en direct...</p>
+                                            </td>
+                                        </tr>
+                                    ) : filteredStudents.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" className="py-12 text-center text-slate-400">
+                                                <p className="text-sm font-medium">Aucun étudiant trouvé.</p>
+                                                <p className="text-xs mt-1">Cliquez sur « Ajouter un étudiant » ou « Données de démo » pour commencer.</p>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredStudents.map((st) => {
+                                            const formattedDate = st.dateNaissance ? st.dateNaissance.split('T')[0] : 'N/A';
+                                            const year = st.dateNaissance ? new Date(st.dateNaissance).getFullYear() : 'N/A';
+                                            return (
+                                                <tr key={st.id} className="hover:bg-slate-50/80 transition-colors">
+                                                    <td className="py-4 px-6 font-mono text-xs text-slate-400">#{st.id}</td>
+                                                    <td className="py-4 px-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                                                                {st.prenom ? st.prenom[0] : ''}{st.nom ? st.nom[0] : ''}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-semibold text-slate-900">{st.prenom} {st.nom}</p>
+                                                                <p className="text-[11px] text-slate-400">Etudiant enregistré</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-4 px-6 text-slate-600 font-medium text-xs">
+                                                        {formattedDate}
+                                                    </td>
+                                                    <td className="py-4 px-6">
+                                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                                            {year}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-4 px-6 text-right">
+                                                        <div className="inline-flex items-center gap-2">
+                                                            <button 
+                                                                onClick={() => openEditModal(st)}
+                                                                className="px-2.5 py-1 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                                                            >
+                                                                Modifier
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleDelete(st.id, `${st.prenom} ${st.nom}`)}
+                                                                className="px-2.5 py-1 text-xs font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors"
+                                                            >
+                                                                Supprimer
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Modal Dialog for Add / Edit */}
+                    {modalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all animate-in fade-in zoom-in duration-150">
+                                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+                                    <h3 className="text-lg font-bold text-slate-900">
+                                        {editingStudent ? `Modifier l'étudiant #${editingStudent.id}` : 'Ajouter un nouvel étudiant'}
+                                    </h3>
+                                    <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+                                </div>
+
+                                <form onSubmit={handleSave} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Nom</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            value={formNom}
+                                            onChange={(e) => setFormNom(e.target.value)}
+                                            placeholder="Ex: LACHGAR"
+                                            className="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Prénom</label>
+                                        <input 
+                                            type="text" 
+                                            required
+                                            value={formPrenom}
+                                            onChange={(e) => setFormPrenom(e.target.value)}
+                                            placeholder="Ex: Mohamed"
+                                            className="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Date de Naissance</label>
+                                        <input 
+                                            type="date" 
+                                            required
+                                            value={formDate}
+                                            onChange={(e) => setFormDate(e.target.value)}
+                                            className="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 mt-6">
+                                        <button 
+                                            type="button" 
+                                            onClick={closeModal}
+                                            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                                        >
+                                            Annuler
+                                        </button>
+                                        <button 
+                                            type="submit"
+                                            className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm shadow-blue-500/20"
+                                        >
+                                            {editingStudent ? 'Enregistrer les modifications' : 'Créer l\'étudiant'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
